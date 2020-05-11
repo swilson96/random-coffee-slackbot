@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 
+require('dotenv').config();
+
 const group = require("./util/group");
 const shuffle = require("./util/shuffle");
 
@@ -54,6 +56,8 @@ app.get("/channels", async (req, res) => {
 
 app.get("/participants", async (req, res) => {
   try {
+    console.log("SLACK_TOKEN: " + process.env.SLACK_TOKEN);
+    console.log("CHANNEL_ID: " + process.env.CHANNEL_ID);
     const channelInfo = await web.conversations.members({
       channel: CHANNEL_ID,
     })
