@@ -107,9 +107,9 @@ const openConversation = async (users) => {
   return openResult.channel.id;
 }
 
-const sendPairingMessages = async (channel) => {
+const sendPairingMessages = async (channel, isThreesome = false) => {
   const sendMessage = (text) => web.chat.postMessage({ channel, text });
-  await sendMessage("Hi! You have been paired at random this week for a virtual coffee! :computer: :coffee:");
+  await sendMessage(`Hi! You have been ${isThreesome ? "trupled" : "paired"} at random this week for a virtual coffee. :computer: :coffee:`);
   await sendMessage("Feel free to arrange something social that suits you both, as brief or as deep as you like.");
   await sendMessage("Have fun!");
 }
@@ -136,7 +136,8 @@ app.post("/execute", async (req, res) => {
     // Send pairing messages
     await Promise.all(groups.map(async (group) => {
       const channel = await openConversation(group);
-      await sendPairingMessages(channel);
+      console.log(`about to message group: ${group}, is threesome: ${group.length === 3}`);
+      await sendPairingMessages(channel, group.length === 3);
     }))
 
     // Report pairings
