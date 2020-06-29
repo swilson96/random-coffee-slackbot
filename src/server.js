@@ -121,6 +121,15 @@ app.post("/execute", async (req, res) => {
     })
     const members = memberInfo.members.filter(user => user != SELF_ID);
 
+    // Just for being nosy
+    var userInfo = await Promise.all(members.map(user => web.users.info({ user })));
+
+    const memberName = (userID) => {
+      var matches = userInfo.filter(u => u.user && u.user.id == userID);
+      if (matches.length < 1) return "unknown";
+      return matches[0].user.real_name;
+    }
+
     if (members.length === 1) {
       res.send("only one person!");
       return;
@@ -136,12 +145,12 @@ app.post("/execute", async (req, res) => {
     // Send pairing messages
     await Promise.all(groups.map(async (group) => {
       const channel = await openConversation(group);
-      console.log(`about to message group: ${group}, is threesome: ${group.length === 3}`);
+      console.log(`Sending message to group: ${group.map(memberName).join(", ")}, is threesome: ${group.length === 3}`);
       await sendPairingMessages(channel, group.length === 3);
     }))
 
     // Report pairings
-    res.send(groups);
+    res.send(groups.map(g => g.map(memberName)));
   } catch (error) {
     printError(error)
     res.send(error);
