@@ -119,10 +119,15 @@ app.post("/execute", async (req, res) => {
     const memberInfo = await web.conversations.members({
       channel: CHANNEL_ID,
     })
-    const members = memberInfo.members.filter(user => user != SELF_ID);
+    const memberIDs = memberInfo.members.filter(user => user != SELF_ID);
 
-    // Just for being nosy
-    var userInfo = await Promise.all(members.map(user => web.users.info({ user })));
+    if (memberIDs.length === 1) {
+      res.send("only one person!");
+      return;
+    }
+
+    // Decorate with names
+    var userInfo = await Promise.all(memberIDs.map(user => web.users.info({ user })));
 
     const memberName = (userID) => {
       var matches = userInfo.filter(u => u.user && u.user.id == userID);
@@ -130,27 +135,24 @@ app.post("/execute", async (req, res) => {
       return matches[0].user.real_name;
     }
 
-    if (members.length === 1) {
-      res.send("only one person!");
-      return;
-    }
+    allMembers = memberIDs.map(m => ({ id: m, name: memberName(m)}));
 
-    // Pair members!
-    console.log("not shuffled: " + members);
-    shuffle(members);
-    console.log("shuffled: " + members);
+    // Remove any blacklisted (e.g. furloughed) members
+    filteredMembers = allMembers.filter(m => m.name != "Gjokica Zafirovski");
 
-    const groups = group(members);
+    // Pair members completely at random!
+    shuffle(filteredMembers);
+    const groups = group(filteredMembers);
 
     // Send pairing messages
     await Promise.all(groups.map(async (group) => {
-      const channel = await openConversation(group);
-      console.log(`Sending message to group: ${group.map(memberName).join(", ")}, is threesome: ${group.length === 3}`);
+      const channel = await openConversation(group.map(m => m.id));
+      console.log(`Sending message to group: ${group.map(m => m.name).join(", ")}, is threesome: ${group.length === 3}`);
       await sendPairingMessages(channel, group.length === 3);
     }))
 
     // Report pairings
-    res.send(groups.map(g => g.map(memberName)));
+    res.send(groups.map(g => g.map(m => m.name)));
   } catch (error) {
     printError(error)
     res.send(error);
