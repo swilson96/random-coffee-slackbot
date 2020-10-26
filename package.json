@@ -6,7 +6,8 @@
   "main": "server.js",
   "scripts": {
     "start": "nodemon src/server.js",
-    "test": "mocha src/**/*.spec.js"
+    "test": "mocha src/**/*.spec.js",
+    "draw": "node draw.js"
   },
   "dependencies": {
     "@slack/events-api": "^2.3.2",
