@@ -31,8 +31,7 @@ const execute = async () => {
 
   // Remove any blacklisted (e.g. furloughed) members
   filteredMembers = allMembers.filter(m => ![
-    "Gjokica Zafirovski",
-    "Zara Hillary",
+    // Member names here, or extract to a constant field
   ].includes(m.name));
 
   // Pair members completely at random!
